@@ -1,10 +1,10 @@
 # README #
 
-This is LAB 09 
+This is LAB 10 
 
 ### What is this repository for? ###
 
-* Lab 09 Experiment with a Cube, Vertex and Fragment Shaders
+* Lab 10 Experiment with a Cube Texturing
 
 ### How do I get set up? ###
 
@@ -32,9 +32,9 @@ http://www.sfml-dev.org/files/SFML-2.3.2-windows-vc14-32-bit.zip "SFML-2.3.2-win
 
 * Change to the projects directory by `cd projects`
 
-* Clone the project `git clone https://MuddyGames@bitbucket.org/MuddyGames/gameplay-programming-i-lab09.git`
+* Clone the project `git clone https://MuddyGames@bitbucket.org/MuddyGames/gameplay-programming-i-lab10.git`
 
-* Change to the project directory `cd projects gameplay-programming-i-lab09`
+* Change to the project directory `cd projects gameplay-programming-i-lab10`
 
 * List files that were downloaded `ls`
 
