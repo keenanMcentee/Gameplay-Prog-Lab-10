@@ -1,7 +1,8 @@
 #include <Game.h>
 
 static bool flip;
-
+const int numOfVertex = 8;
+const int numOfTriangles = 36;
 Game::Game() : window(VideoMode(800, 600), "OpenGL Cube Texturing")
 {
 }
@@ -41,8 +42,8 @@ typedef struct
 	float texel[2];
 } Vertex;
 
-Vertex vertex[3];
-GLubyte triangles[3];
+Vertex vertex[numOfVertex];
+GLubyte triangles[numOfTriangles];
 
 /* Variable to hold the VBO identifier and shader data */
 GLuint	index,		//Index to draw
@@ -60,7 +61,7 @@ GLuint	index,		//Index to draw
 //const string filename = "texture.tga";
 //const string filename = "cube.tga";
 
-const string filename = "texture.tga";
+const string filename = "cube.tga";
 
 int width; //width of texture
 int height; //height of texture
@@ -86,40 +87,86 @@ void Game::initialize()
 	vertex[0].coordinate[1] = -0.5f;
 	vertex[0].coordinate[2] = 0.0f;
 
-	vertex[1].coordinate[0] = -0.5f;
-	vertex[1].coordinate[1] = 0.5f;
+	vertex[1].coordinate[0] = 0.5f;
+	vertex[1].coordinate[1] = -0.5f;
 	vertex[1].coordinate[2] = 0.0f;
 
 	vertex[2].coordinate[0] = 0.5f;
 	vertex[2].coordinate[1] = 0.5f;
 	vertex[2].coordinate[2] = 0.0f;
 
-	vertex[0].color[0] = 1.0f;
-	vertex[0].color[1] = 0.0f;
-	vertex[0].color[2] = 0.0f;
-	vertex[0].color[3] = 1.0f;
+	vertex[3].coordinate[0] = -0.5f;
+	vertex[3].coordinate[1] = 0.5f;
+	vertex[3].coordinate[2] = 0.0f;
 
-	vertex[1].color[0] = 1.0f;
-	vertex[1].color[1] = 0.0f;
-	vertex[1].color[2] = 0.0f;
-	vertex[1].color[3] = 1.0f;
+	vertex[4].coordinate[0] = -0.5f;
+	vertex[4].coordinate[1] = -0.5f;
+	vertex[4].coordinate[2] = 1.0f;
 
-	vertex[2].color[0] = 1.0f;
-	vertex[2].color[1] = 0.0f;
-	vertex[2].color[2] = 0.0f;
-	vertex[2].color[3] = 0.0f;
+	vertex[5].coordinate[0] = 0.5f;
+	vertex[5].coordinate[1] = -0.5f;
+	vertex[5].coordinate[2] = 1.0f;
+
+	vertex[6].coordinate[0] = 0.5f;
+	vertex[6].coordinate[1] = 0.5f;
+	vertex[6].coordinate[2] = 1.0f;
+
+	vertex[7].coordinate[0] = -0.5f;
+	vertex[7].coordinate[1] = 0.5f;
+	vertex[7].coordinate[2] = 1.0f;
+
+	for (size_t i = 0; i < numOfVertex; i++)
+	{
+		vertex[i].color[0] = 0.0f;
+		vertex[i].color[1] = 0.0f;
+		vertex[i].color[2] = 0.0f;
+		vertex[i].color[3] = 1.0f;
+	}
 
 	vertex[0].texel[0] = 0.5f;
-	vertex[0].texel[1] = 0.5f;
+	vertex[0].texel[1] = 32.0f;
 
-	vertex[1].texel[0] = 1.0f;
-	vertex[1].texel[1] = 1.0f;
+	vertex[1].texel[0] = 32.0f;
+	vertex[1].texel[1] = 32.0f;
 
 	vertex[2].texel[0] = 1.0f;
 	vertex[2].texel[1] = 0.0f;
 
+	vertex[3].texel[0] = 1.5f;
+	vertex[3].texel[1] = 1.5f;
+
+	vertex[4].texel[0] = 1.0f;
+	vertex[4].texel[1] = 1.0f;
+
+	vertex[5].texel[0] = 1.0f;
+	vertex[5].texel[1] = 1.0f;
+
+	vertex[6].texel[0] = 1.5f;
+	vertex[6].texel[1] = 1.5f;
+
+	vertex[7].texel[0] = 1.0f;
+	vertex[7].texel[1] = 1.0f;
+
 	/*Index of Poly / Triangle to Draw */
+	//FRONT FACE
 	triangles[0] = 0;   triangles[1] = 1;   triangles[2] = 2;
+	triangles[3] = 0;   triangles[4] = 2;	triangles[5] = 3;
+
+	//BACK FACE
+	triangles[6] = 4;   triangles[7] = 6;   triangles[8] = 7;
+	triangles[9] = 5;   triangles[10] = 6;  triangles[11] = 4;
+	//TOP FACE
+	triangles[12] = 3;  triangles[13] = 2; triangles[14] = 6;
+	triangles[15] = 3;  triangles[16] = 6; triangles[17] = 7;
+	//BOTTOM FACE
+	triangles[18] = 0;  triangles[19] = 1; triangles[20] = 5;
+	triangles[21] = 0;  triangles[22] = 5; triangles[23] = 4;
+	//LEFT FACE
+	triangles[24] = 4;  triangles[25] = 0; triangles[26] = 7;
+	triangles[27] = 0;  triangles[28] = 3; triangles[29] = 7;
+	//RIGHT FACE
+	triangles[30] = 5;  triangles[31] = 6; triangles[32] = 1;
+	triangles[33] = 1;  triangles[34] = 6; triangles[35] = 2;
 
 	/* Create a new VBO using VBO id */
 	glGenBuffers(1, vbo);
@@ -133,7 +180,7 @@ void Game::initialize()
 
 	glGenBuffers(1, &index);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte) * 3, triangles, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte) * numOfTriangles, triangles, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	/* Vertex Shader which would normally be loaded from an external file */
@@ -175,7 +222,8 @@ void Game::initialize()
 		"out vec4 fColor;"
 		"void main() {"
 		//"	fColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);"
-		"	fColor = texture(f_texture, texel.st);"
+		//"	fColor = texture(f_texture, texel.st);"
+		"   fColor = color + vec4(0.0f, 1.0f, 0.0f, 1.0f);"
 		"}"; //Fragment Shader Src
 
 	DEBUG_MSG("Setting Up Fragment Shader");
@@ -282,18 +330,43 @@ void Game::update()
 		}
 	}
 
-	//Change vertex data
-	vertex[0].coordinate[0] += -0.0001f;
-	vertex[0].coordinate[1] += -0.0001f;
-	vertex[0].coordinate[2] += -0.0001f;
+	////Change vertex data
+	//vertex[0].coordinate[0] += -0.0001f;
+	//vertex[0].coordinate[1] += -0.0001f;
+	//vertex[0].coordinate[2] += -0.0001f;
 
-	vertex[1].coordinate[0] += -0.0001f;
-	vertex[1].coordinate[1] += -0.0001f;
-	vertex[1].coordinate[2] += -0.0001f;
+	//vertex[1].coordinate[0] += -0.0001f;
+	//vertex[1].coordinate[1] += -0.0001f;
+	//vertex[1].coordinate[2] += -0.0001f;
 
-	vertex[2].coordinate[0] += -0.0001f;
-	vertex[2].coordinate[1] += -0.0001f;
-	vertex[2].coordinate[2] += -0.0001f;
+	//vertex[2].coordinate[0] += -0.0001f;
+	//vertex[2].coordinate[1] += -0.0001f;
+	//vertex[2].coordinate[2] += -0.0001f;
+
+	Matrix rotationX(cos(0.0005), 0, sin(0.0005), 0, 1, 0, -sin(0.0005), 0, cos(0.0005));
+	Matrix rotationY(1, 0, 0, 0, cos(0.0005), sin(0.0005), 0, -sin(0.0005), cos(0.0005));
+	for (size_t i = 0; i < numOfVertex; i++)
+	{
+		if (vertex[i].coordinate[2] == 1.0f)
+		{
+			customVector::Vector3 tempVect(vertex[i].coordinate[0], vertex[i].coordinate[1], vertex[i].coordinate[2] + 0.5f);
+			tempVect.Equals(rotationX* tempVect);
+			tempVect.Equals(rotationY * tempVect);
+			vertex[i].coordinate[0] = tempVect.x;
+			vertex[i].coordinate[1] = tempVect.y;
+			vertex[i].coordinate[2] = tempVect.z - 0.5f;
+		}
+		else
+		{
+			customVector::Vector3 tempVect(vertex[i].coordinate[0], vertex[i].coordinate[1], vertex[i].coordinate[2] - 0.5f);
+			tempVect.Equals(rotationX* tempVect);
+			tempVect.Equals(rotationY * tempVect);
+			vertex[i].coordinate[0] = tempVect.x;
+			vertex[i].coordinate[1] = tempVect.y;
+			vertex[i].coordinate[2] = tempVect.z + 0.5f;
+		}
+	}
+
 
 #if (DEBUG >= 2)
 	DEBUG_MSG("Update up...");
@@ -317,7 +390,7 @@ void Game::render()
 
 	/*	As the data positions will be updated by the this program on the
 		CPU bind the updated data to the GPU for drawing	*/
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 3, vertex, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numOfTriangles, vertex, GL_STATIC_DRAW);
 
 	/*	Draw Triangle from VBO	(set where to start from as VBO can contain
 		model components that 'are' and 'are not' to be drawn )	*/
@@ -337,7 +410,7 @@ void Game::render()
 	glEnableVertexAttribArray(colorID);
 	glEnableVertexAttribArray(texelID);
 
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, (char*)NULL + 0);
+	glDrawElements(GL_TRIANGLES, numOfTriangles, GL_UNSIGNED_BYTE, (char*)NULL + 0);
 
 	window.display();
 
