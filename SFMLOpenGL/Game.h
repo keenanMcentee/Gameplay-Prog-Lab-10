@@ -9,6 +9,8 @@
 #include <SFML/Window.hpp>
 #include <SFML/OpenGL.hpp>
 
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 #include <Matrix3.h>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -17,6 +19,7 @@
 using namespace std;
 using namespace sf;
 using namespace customMatrix;
+using namespace glm;
 
 class Game
 {

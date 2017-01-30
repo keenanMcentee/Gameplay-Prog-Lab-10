@@ -39,7 +39,7 @@ typedef struct
 {
 	float coordinate[3];
 	float color[4];
-	float texel[2];
+	float texel[8];
 } Vertex;
 
 Vertex vertex[numOfVertex];
@@ -47,17 +47,17 @@ GLubyte triangles[numOfTriangles];
 
 /* Variable to hold the VBO identifier and shader data */
 GLuint	index,		//Index to draw
-		vsid,		//Vertex Shader ID
-		fsid,		//Fragment Shader ID
-		progID,		//Program ID
-		vao = 0,	//Vertex Array ID
-		vbo[1],		// Vertex Buffer ID
-		positionID, //Position ID
-		colorID,	// Color ID
-		to,			// Texture ID 1 to 32
-		textureID,	//Texture ID
-		texelID;	// Texel ID
-
+vsid,		//Vertex Shader ID
+fsid,		//Fragment Shader ID
+progID,		//Program ID
+vao = 0,	//Vertex Array ID
+vbo[1],		// Vertex Buffer ID
+positionID, //Position ID
+colorID,	// Color ID
+to,			// Texture ID 1 to 32
+textureID,	//Texture ID
+texelID,	// Texel ID
+mvpID;
 //const string filename = "texture.tga";
 //const string filename = "cube.tga";
 
@@ -67,7 +67,7 @@ int width; //width of texture
 int height; //height of texture
 int comp_count; //Component of texture
 const int number = 4; //4 = RGBA
-
+mat4 mvp, projection, view, model;
 unsigned char* img_data;
 
 void Game::initialize()
@@ -122,30 +122,23 @@ void Game::initialize()
 		vertex[i].color[2] = 0.0f;
 		vertex[i].color[3] = 1.0f;
 	}
+	for (int i = 0; i < 6; i++)
+	{
+		vertex[i].texel[0] = 0.0f; 
+		vertex[i].texel[1] = 0.0f;
 
-	vertex[0].texel[0] = 0.5f;
-	vertex[0].texel[1] = 32.0f;
+		vertex[i].texel[2] = 1.0f;
+		vertex[i].texel[3] = 0.0f;
 
-	vertex[1].texel[0] = 32.0f;
-	vertex[1].texel[1] = 32.0f;
+		vertex[i].texel[4] = 1.0f;
+		vertex[i].texel[5] = 1.0f;
 
-	vertex[2].texel[0] = 1.0f;
-	vertex[2].texel[1] = 0.0f;
+		vertex[i].texel[6] = 0.0f;
+		vertex[i].texel[7] = 1.0f;
+	}
+	
 
-	vertex[3].texel[0] = 1.5f;
-	vertex[3].texel[1] = 1.5f;
-
-	vertex[4].texel[0] = 1.0f;
-	vertex[4].texel[1] = 1.0f;
-
-	vertex[5].texel[0] = 1.0f;
-	vertex[5].texel[1] = 1.0f;
-
-	vertex[6].texel[0] = 1.5f;
-	vertex[6].texel[1] = 1.5f;
-
-	vertex[7].texel[0] = 1.0f;
-	vertex[7].texel[1] = 1.0f;
+	
 
 	/*Index of Poly / Triangle to Draw */
 	//FRONT FACE
@@ -167,6 +160,8 @@ void Game::initialize()
 	//RIGHT FACE
 	triangles[30] = 5;  triangles[31] = 6; triangles[32] = 1;
 	triangles[33] = 1;  triangles[34] = 6; triangles[35] = 2;
+
+
 
 	/* Create a new VBO using VBO id */
 	glGenBuffers(1, vbo);
@@ -190,10 +185,11 @@ void Game::initialize()
 		"in vec2 sv_texel;"
 		"out vec4 color;"
 		"out vec2 texel;"
+		"uniform mat4 sv_mvp;"
 		"void main() {"
 		"	color = sv_color;"
 		"	texel = sv_texel;"
-		"	gl_Position = sv_position;"
+		"	gl_Position = sv_mvp * sv_position;"
 		"}"; //Vertex Shader Src
 
 	DEBUG_MSG("Setting Up Vertex Shader");
@@ -221,9 +217,9 @@ void Game::initialize()
 		"in vec2 texel;"
 		"out vec4 fColor;"
 		"void main() {"
-		//"	fColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);"
-		//"	fColor = texture(f_texture, texel.st);"
-		"   fColor = color + vec4(0.0f, 1.0f, 0.0f, 1.0f);"
+		"	fColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);"
+		//"	fColor = texture2D(f_texture, uv);"
+		//"   fColor = color + vec4(0.0f, 1.0f, 0.0f, 1.0f);"
 		"}"; //Fragment Shader Src
 
 	DEBUG_MSG("Setting Up Fragment Shader");
@@ -302,6 +298,25 @@ void Game::initialize()
 	colorID = glGetAttribLocation(progID, "sv_color");
 	texelID = glGetAttribLocation(progID, "sv_texel");
 	textureID = glGetUniformLocation(progID, "f_texture");
+	mvpID = glGetUniformLocation(progID, "sv_mvp");
+	projection = perspective(
+		45.0f,					// Field of View 45 degrees
+		5.0f / 5.0f,			// Aspect ratio
+		10.0f,					// Display Range Min : 0.1f unit
+		100.0f					// Display Range Max : 100.0f unit
+	);
+
+	// Camera Matrix
+	view = lookAt(
+		vec3(0.0f, 4.0f, 9.0f),	// Camera (x,y,z), in World Space
+		vec3(0.0f, 0.0f, 0.0f),	// Camera looking at origin
+		vec3(0.0f, 1.0f, 0.0f)	// 0.0f, 1.0f, 0.0f Look Down and 0.0f, -1.0f, 0.0f Look Up
+	);
+
+	// Model matrix
+	model = mat4(
+		0.1f					// Identity Matrix
+	);
 }
 
 void Game::update()
@@ -371,7 +386,8 @@ void Game::update()
 #if (DEBUG >= 2)
 	DEBUG_MSG("Update up...");
 #endif
-
+	// Update Model View Projection
+	mvp = projection * view * model;
 }
 
 void Game::render()
@@ -394,7 +410,8 @@ void Game::render()
 
 	/*	Draw Triangle from VBO	(set where to start from as VBO can contain
 		model components that 'are' and 'are not' to be drawn )	*/
-
+		// Send transformation to shader mvp uniform
+	glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
 	//Set Active Texture .... 32
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(textureID, 0);
