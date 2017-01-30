@@ -39,7 +39,7 @@ typedef struct
 {
 	float coordinate[3];
 	float color[4];
-	float texel[8];
+	float texel[2];
 } Vertex;
 
 Vertex vertex[numOfVertex];
@@ -61,7 +61,7 @@ mvpID;
 //const string filename = "texture.tga";
 //const string filename = "cube.tga";
 
-const string filename = "cube.tga";
+const string filename = "texture.tga";
 
 int width; //width of texture
 int height; //height of texture
@@ -117,29 +117,24 @@ void Game::initialize()
 
 	for (size_t i = 0; i < numOfVertex; i++)
 	{
-		vertex[i].color[0] = 0.0f;
-		vertex[i].color[1] = 0.0f;
-		vertex[i].color[2] = 0.0f;
+		vertex[i].color[0] = 1.0f;
+		vertex[i].color[1] = 1.0f;
+		vertex[i].color[2] = 1.0f;
 		vertex[i].color[3] = 1.0f;
 	}
-	for (int i = 0; i < 6; i++)
-	{
-		vertex[i].texel[0] = 0.0f; 
-		vertex[i].texel[1] = 0.0f;
+	//Front bottom left
+	vertex[0].texel[0] = 0.0f;
+	vertex[0].texel[1] = 1.0f;
 
-		vertex[i].texel[2] = 1.0f;
-		vertex[i].texel[3] = 0.0f;
-
-		vertex[i].texel[4] = 1.0f;
-		vertex[i].texel[5] = 1.0f;
-
-		vertex[i].texel[6] = 0.0f;
-		vertex[i].texel[7] = 1.0f;
-	}
-	
-
-	
-
+	//Front bottom right
+	vertex[1].texel[0] = 1.0f;
+	vertex[1].texel[1] = 1.0f;
+	//front top right
+	vertex[2].texel[0] = 1.0f;
+	vertex[2].texel[1] = 0.0f;
+	//Front top left
+	vertex[3].texel[0] = 0.0f;
+	vertex[3].texel[1] = 0.0f;
 	/*Index of Poly / Triangle to Draw */
 	//FRONT FACE
 	triangles[0] = 0;   triangles[1] = 1;   triangles[2] = 2;
@@ -170,7 +165,7 @@ void Game::initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
 	/* Upload vertex data to GPU */
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 9, vertex, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 8, vertex, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glGenBuffers(1, &index);
@@ -217,8 +212,9 @@ void Game::initialize()
 		"in vec2 texel;"
 		"out vec4 fColor;"
 		"void main() {"
-		"	fColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);"
-		//"	fColor = texture2D(f_texture, uv);"
+		//"fColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);"
+		"fColor = texture(f_texture, texel.st) * color;"
+		//"	fColor = texture2D(f_texture, texel.st);"
 		//"   fColor = color + vec4(0.0f, 1.0f, 0.0f, 1.0f);"
 		"}"; //Fragment Shader Src
 
@@ -301,14 +297,14 @@ void Game::initialize()
 	mvpID = glGetUniformLocation(progID, "sv_mvp");
 	projection = perspective(
 		45.0f,					// Field of View 45 degrees
-		5.0f / 5.0f,			// Aspect ratio
+		1.0f / 1.0f,			// Aspect ratio
 		10.0f,					// Display Range Min : 0.1f unit
 		100.0f					// Display Range Max : 100.0f unit
 	);
 
 	// Camera Matrix
 	view = lookAt(
-		vec3(0.0f, 4.0f, 9.0f),	// Camera (x,y,z), in World Space
+		vec3(0.0f, 0.0f, 10.0f),	// Camera (x,y,z), in World Space
 		vec3(0.0f, 0.0f, 0.0f),	// Camera looking at origin
 		vec3(0.0f, 1.0f, 0.0f)	// 0.0f, 1.0f, 0.0f Look Down and 0.0f, -1.0f, 0.0f Look Up
 	);
@@ -358,7 +354,7 @@ void Game::update()
 	//vertex[2].coordinate[1] += -0.0001f;
 	//vertex[2].coordinate[2] += -0.0001f;
 
-	Matrix rotationX(cos(0.0005), 0, sin(0.0005), 0, 1, 0, -sin(0.0005), 0, cos(0.0005));
+	/*Matrix rotationX(cos(0.0005), 0, sin(0.0005), 0, 1, 0, -sin(0.0005), 0, cos(0.0005));
 	Matrix rotationY(1, 0, 0, 0, cos(0.0005), sin(0.0005), 0, -sin(0.0005), cos(0.0005));
 	for (size_t i = 0; i < numOfVertex; i++)
 	{
@@ -380,7 +376,7 @@ void Game::update()
 			vertex[i].coordinate[1] = tempVect.y;
 			vertex[i].coordinate[2] = tempVect.z + 0.5f;
 		}
-	}
+	}*/
 
 
 #if (DEBUG >= 2)
