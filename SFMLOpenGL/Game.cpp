@@ -117,24 +117,27 @@ void Game::initialize()
 
 	for (size_t i = 0; i < numOfVertex; i++)
 	{
-		vertex[i].color[0] = 1.0f;
-		vertex[i].color[1] = 1.0f;
-		vertex[i].color[2] = 1.0f;
+		vertex[i].color[0] = 0.0f;
+		vertex[i].color[1] = 0.0f;
+		vertex[i].color[2] = 0.0f;
 		vertex[i].color[3] = 1.0f;
 	}
-	//Front bottom left
+		//FRONT FACE
+	//bottom left
 	vertex[0].texel[0] = 0.0f;
-	vertex[0].texel[1] = 1.0f;
-
-	//Front bottom right
+	vertex[0].texel[1] = 0.0f;
+	//bottom right
 	vertex[1].texel[0] = 1.0f;
-	vertex[1].texel[1] = 1.0f;
-	//front top right
+	vertex[1].texel[1] = 0.0f;
+	//top right
 	vertex[2].texel[0] = 1.0f;
-	vertex[2].texel[1] = 0.0f;
-	//Front top left
+	vertex[2].texel[1] = 1.0f;
+	//top left
 	vertex[3].texel[0] = 0.0f;
-	vertex[3].texel[1] = 0.0f;
+	vertex[3].texel[1] = 1.0f;
+
+	
+
 	/*Index of Poly / Triangle to Draw */
 	//FRONT FACE
 	triangles[0] = 0;   triangles[1] = 1;   triangles[2] = 2;
@@ -174,18 +177,15 @@ void Game::initialize()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	/* Vertex Shader which would normally be loaded from an external file */
-	const char* vs_src = "#version 400\n\r"
-		"in vec4 sv_position;"
-		"in vec4 sv_color;"
-		"in vec2 sv_texel;"
-		"out vec4 color;"
-		"out vec2 texel;"
-		"uniform mat4 sv_mvp;"
-		"void main() {"
-		"	color = sv_color;"
-		"	texel = sv_texel;"
-		"	gl_Position = sv_mvp * sv_position;"
-		"}"; //Vertex Shader Src
+
+	ifstream vertexFile;
+	std::string vString;
+	std::stringstream vContent;
+	vertexFile.open("vertexShader.txt");
+	vContent << vertexFile.rdbuf();
+	vertexFile.close();
+	vString = vContent.str();
+	const char* vs_src = vString.c_str();
 
 	DEBUG_MSG("Setting Up Vertex Shader");
 
@@ -206,18 +206,17 @@ void Game::initialize()
 	}
 
 	/* Fragment Shader which would normally be loaded from an external file */
-	const char* fs_src = "#version 400\n\r"
-		"uniform sampler2D f_texture;"
-		"in vec4 color;"
-		"in vec2 texel;"
-		"out vec4 fColor;"
-		"void main() {"
-		//"fColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);"
-		"fColor = texture(f_texture, texel.st) * color;"
-		//"	fColor = texture2D(f_texture, texel.st);"
-		//"   fColor = color + vec4(0.0f, 1.0f, 0.0f, 1.0f);"
-		"}"; //Fragment Shader Src
+	
 
+
+	ifstream fragFile;
+	std::string fString;
+	std::stringstream fContent;
+	fragFile.open("fragmentShader.txt");
+	fContent << fragFile.rdbuf();
+	fragFile.close();
+	fString = fContent.str();
+	const char* fs_src = fString.c_str();
 	DEBUG_MSG("Setting Up Fragment Shader");
 
 	fsid = glCreateShader(GL_FRAGMENT_SHADER);
@@ -298,21 +297,19 @@ void Game::initialize()
 	projection = perspective(
 		45.0f,					// Field of View 45 degrees
 		1.0f / 1.0f,			// Aspect ratio
-		10.0f,					// Display Range Min : 0.1f unit
-		100.0f					// Display Range Max : 100.0f unit
+		1.0f,					// Display Range Min : 0.1f unit
+		10.0f					// Display Range Max : 100.0f unit
 	);
 
 	// Camera Matrix
 	view = lookAt(
-		vec3(0.0f, 0.0f, 10.0f),	// Camera (x,y,z), in World Space
+		vec3(0.0f, 0.0f, 9.0f),	// Camera (x,y,z), in World Space
 		vec3(0.0f, 0.0f, 0.0f),	// Camera looking at origin
 		vec3(0.0f, 1.0f, 0.0f)	// 0.0f, 1.0f, 0.0f Look Down and 0.0f, -1.0f, 0.0f Look Up
 	);
 
 	// Model matrix
-	model = mat4(
-		0.1f					// Identity Matrix
-	);
+	model = mat4(20.0f);
 }
 
 void Game::update()
@@ -354,8 +351,19 @@ void Game::update()
 	//vertex[2].coordinate[1] += -0.0001f;
 	//vertex[2].coordinate[2] += -0.0001f;
 
-	/*Matrix rotationX(cos(0.0005), 0, sin(0.0005), 0, 1, 0, -sin(0.0005), 0, cos(0.0005));
-	Matrix rotationY(1, 0, 0, 0, cos(0.0005), sin(0.0005), 0, -sin(0.0005), cos(0.0005));
+	Matrix rotationY(cos(0.0005), 0, sin(0.0005)
+							, 0, 1, 0,
+					-sin(0.0005), 0, cos(0.0005));
+
+	Matrix rotationX(1, 0, 0, 
+			0, cos(0.0005), sin(0.0005),
+			0, -sin(0.0005), cos(0.0005));
+
+	Matrix rotationZ(cos(0.0005), sin(0.0005), 0,
+					-sin(0.0005), cos(0.0005), 0,
+								0, 0, 1);
+
+
 	for (size_t i = 0; i < numOfVertex; i++)
 	{
 		if (vertex[i].coordinate[2] == 1.0f)
@@ -363,6 +371,7 @@ void Game::update()
 			customVector::Vector3 tempVect(vertex[i].coordinate[0], vertex[i].coordinate[1], vertex[i].coordinate[2] + 0.5f);
 			tempVect.Equals(rotationX* tempVect);
 			tempVect.Equals(rotationY * tempVect);
+			tempVect.Equals(rotationZ * tempVect);
 			vertex[i].coordinate[0] = tempVect.x;
 			vertex[i].coordinate[1] = tempVect.y;
 			vertex[i].coordinate[2] = tempVect.z - 0.5f;
@@ -372,11 +381,12 @@ void Game::update()
 			customVector::Vector3 tempVect(vertex[i].coordinate[0], vertex[i].coordinate[1], vertex[i].coordinate[2] - 0.5f);
 			tempVect.Equals(rotationX* tempVect);
 			tempVect.Equals(rotationY * tempVect);
+			tempVect.Equals(rotationZ * tempVect);
 			vertex[i].coordinate[0] = tempVect.x;
 			vertex[i].coordinate[1] = tempVect.y;
 			vertex[i].coordinate[2] = tempVect.z + 0.5f;
 		}
-	}*/
+	}
 
 
 #if (DEBUG >= 2)
@@ -395,7 +405,7 @@ void Game::render()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index);

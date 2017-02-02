@@ -3,7 +3,9 @@
 
 #include <Debug.h>
 
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <SFML/Window.hpp>
