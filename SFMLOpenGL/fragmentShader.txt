@@ -4,5 +4,5 @@
 	in vec2 texel;
 	out vec4 fColor;
 	void main() {
-		fColor = color * texture2D(f_texture, texel.st);
+		fColor = texture2D(f_texture, texel.st);
 		}; //Fragment Shader Src

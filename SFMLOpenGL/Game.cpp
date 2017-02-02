@@ -393,7 +393,7 @@ void Game::update()
 	DEBUG_MSG("Update up...");
 #endif
 	// Update Model View Projection
-	mvp = projection * view * model;
+	//mvp = projection * view * model;
 }
 
 void Game::render()
